@@ -83,6 +83,7 @@ enyo.kind({
 		}
 		this.moviesBaseUrl = this.$.flixnetMovies.getUrl();
 		this.currentQueryBase = this.moviesBaseUrl;
+		this.$.appTitle.setContent("FlixNet: Random");
 		this.$.flixnetGenres.call();
 		this.$.flixnetMovies.call();
 	},
