@@ -164,11 +164,12 @@ enyo.kind({
 			if (thisGenre.id === 0) {
 				this.currentQueryBase = this.moviesBaseUrl;
 				this.currentGenreParam = "";
+				this.$.flixnetMovies.setUrl(this.moviesBaseUrl);
 			} else {
 				this.currentQueryBase = this.moviesBaseUrl + "bygenre/";
 				this.currentGenreParam = "genre=" + thisGenre.id;
+				this.$.flixnetMovies.setUrl(this.getPagedUrl());
 			}
-			this.$.flixnetMovies.setUrl(this.getPagedUrl());
 			this.$.flixnetMovies.call();
 		}
 		this.selectNextView();
