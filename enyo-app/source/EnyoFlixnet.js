@@ -5,6 +5,11 @@ enyo.kind({
 	detailsOpen: false,
 	offlineMode: false,
 	allMovies: [],
+	offlineFilteredMovies: [],
+	moviesBaseUrl: "",
+	currentGenreParam: "",
+	currentSkip: 0,
+	currentTake: 10,
 	components: [
 		{name: "flixnetGenres", kind: "WebService",  url: "http://flixnet.webosarchive.org/api/genres/",  onSuccess: "gotGenres",  onFailure: "failGenres"},
 		{name: "flixnetMovies", kind: "WebService",  url: "http://flixnet.webosarchive.org/api/movies/",  onSuccess: "gotMovies",  onFailure: "failMovies"},
@@ -39,8 +44,8 @@ enyo.kind({
 				]},
 				{kind: "Toolbar", components: [
 					{kind: "GrabButton"},
-					{name: "btnPageDown", disabled:true, caption: "Prev", onclick: "setWallpaper"},
-					{name: "btnPageUp", disabled:true, caption: "Next", onclick: "setWallpaper"}
+					{name: "btnPageDown", disabled:true, caption: "Prev", onclick: "prevPage"},
+					{name: "btnPageUp", disabled:true, caption: "Next", onclick: "nextPage"}
 				]}
 			]},
 			{name: "panelDetails", showing:false, dismissible: true, components: [
@@ -48,7 +53,7 @@ enyo.kind({
 					{name: "movieFrame", className: "movie-backdrop-frame", components: [
 						{name: "movieBackdrop", className: "movie-backdrop", kind: "Image", src: "images/showtime.png", onerror:"backdropError" },
 					]},
-					{name: "detailTitle", className: "movie-detail-title", content: "Movie Title"},	
+					{name: "detailTitle", className: "movie-detail-title", content: "Movie Title"},
 					{name: "detailMeta", className: "movie-detail-meta", content: "Rating, Runtime"},
 					{name: "detailDescription", content: "Movie Description", allowHtml: true}
 				]},
@@ -74,13 +79,15 @@ enyo.kind({
 			enyo.log("Web server detected, switching to https");
 			this.$.flixnetGenres.setUrl(this.$.flixnetGenres.url.replace("http://", "https://"));
 			this.$.flixnetMovies.setUrl(this.$.flixnetMovies.url.replace("http://", "https://"));
-		} 
+		}
+		this.moviesBaseUrl = this.$.flixnetMovies.getUrl();
 		this.$.flixnetGenres.call();
+		this.$.flixnetMovies.setUrl(this.getPagedUrl());
 		this.$.flixnetMovies.call();
 	},
 	slidingSelected: function(inSender, inIndex) {
 		enyo.log("view: " + this.$.slidingPane.getViewName());
-	
+
 		if (this.$.slidingPane.getViewName() != "panelDetails") {
 			enyo.log("I should hide the details pane");
 			this.detailsOpen = false;
@@ -88,7 +95,7 @@ enyo.kind({
 		} else {
 			enyo.log("I should leave the details pane alone");
 		}
-	
+
 	},
 	selectNextView: function () {
 		if (window.innerWidth <= 500) {
@@ -101,6 +108,14 @@ enyo.kind({
 			}
 			pane.selectViewByIndex(viewIdx);
 		}
+	},
+	getPagedUrl: function() {
+		var url = this.moviesBaseUrl + "?";
+		if (this.currentGenreParam) {
+			url += this.currentGenreParam + "&";
+		}
+		url += "skip=" + this.currentSkip + "&take=" + this.currentTake;
+		return url;
 	},
 	gotGenres: function(inSender, inResponse) {
 		//enyo.log("Genre response: " + JSON.stringify(inResponse));
@@ -128,6 +143,7 @@ enyo.kind({
 	},
 	genreSelect: function(inSender, inEvent) {
 		var thisGenre = this.genres[inEvent.rowIndex];
+		this.currentSkip = 0;
 		if (this.offlineMode) {
 			var genreId = thisGenre.id;
 			var filtered = [];
@@ -137,11 +153,13 @@ enyo.kind({
 					filtered.push(this.allMovies[i]);
 				}
 			}
-			this.movies = filtered.length > 0 ? filtered : this.allMovies;
+			this.offlineFilteredMovies = filtered.length > 0 ? filtered : this.allMovies;
+			this.movies = this.offlineFilteredMovies.slice(0, this.currentTake);
 			this.$.listMovies.render();
+			this.updatePageButtons();
 		} else {
-			var queryUrl = this.$.flixnetMovies.getUrl() + "?genre=" + thisGenre.id;
-			this.$.flixnetMovies.setUrl(queryUrl);
+			this.currentGenreParam = "genre=" + thisGenre.id;
+			this.$.flixnetMovies.setUrl(this.getPagedUrl());
 			this.$.flixnetMovies.call();
 		}
 		this.selectNextView();
@@ -151,33 +169,70 @@ enyo.kind({
 		this.movies = inResponse;
 		if (this.allMovies.length === 0) {
 			this.allMovies = inResponse;
+			this.offlineFilteredMovies = inResponse;
 			try { localStorage.setItem("flixnet_movies", JSON.stringify(inResponse)); } catch(e) {}
 		}
   		this.$.listMovies.render();
+  		this.updatePageButtons();
 	},
 	failMovies: function() {
 		this.offlineMode = true;
 		if (this.allMovies.length > 0) {
-			this.movies = this.allMovies;
+			this.offlineFilteredMovies = this.allMovies;
+			this.movies = this.offlineFilteredMovies.slice(this.currentSkip, this.currentSkip + this.currentTake);
 			this.$.listMovies.render();
+			this.updatePageButtons();
 			return;
 		}
 		var cached;
 		try { cached = localStorage.getItem("flixnet_movies"); } catch(e) {}
 		if (cached) {
 			this.allMovies = JSON.parse(cached);
-			this.movies = this.allMovies;
+			this.offlineFilteredMovies = this.allMovies;
+			this.movies = this.offlineFilteredMovies.slice(0, this.currentTake);
 			this.$.listMovies.render();
+			this.updatePageButtons();
 		} else {
 			this.$.localMovies.call();
 		}
 	},
 	gotLocalMovies: function(inSender, inResponse) {
 		this.allMovies = inResponse;
+		this.offlineFilteredMovies = inResponse;
 		this.gotMovies(inSender, inResponse);
 	},
 	noLocalData: function() {
 		enyo.log("No local fallback data available");
+	},
+	prevPage: function() {
+		this.currentSkip = Math.max(0, this.currentSkip - this.currentTake);
+		if (this.offlineMode) {
+			this.movies = this.offlineFilteredMovies.slice(this.currentSkip, this.currentSkip + this.currentTake);
+			this.$.listMovies.render();
+			this.updatePageButtons();
+		} else {
+			this.$.flixnetMovies.setUrl(this.getPagedUrl());
+			this.$.flixnetMovies.call();
+		}
+	},
+	nextPage: function() {
+		this.currentSkip = this.currentSkip + this.currentTake;
+		if (this.offlineMode) {
+			this.movies = this.offlineFilteredMovies.slice(this.currentSkip, this.currentSkip + this.currentTake);
+			this.$.listMovies.render();
+			this.updatePageButtons();
+		} else {
+			this.$.flixnetMovies.setUrl(this.getPagedUrl());
+			this.$.flixnetMovies.call();
+		}
+	},
+	updatePageButtons: function() {
+		this.$.btnPageDown.setDisabled(this.currentSkip <= 0);
+		if (this.offlineMode) {
+			this.$.btnPageUp.setDisabled(this.currentSkip + this.currentTake >= this.offlineFilteredMovies.length);
+		} else {
+			this.$.btnPageUp.setDisabled(this.movies.length < this.currentTake);
+		}
 	},
 	renderMovieItem: function(inSender, inIndex) {
 		var r = this.movies[inIndex];
