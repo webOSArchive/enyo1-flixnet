@@ -1,7 +1,7 @@
 #!/bin/bash
 
 mydir=$(cd `dirname $0` && pwd)
-mkdir $mydir/bin/ -p
+mkdir -p $mydir/bin/
 
 if [ "$1" = "clean" ]; then
     echo -n "Cleaning up..."
@@ -50,7 +50,7 @@ if [ $webOS -eq 1 ]; then
     echo "Building for LuneOS/webOS..."
     rm -rf $mydir/bin/*.ipk
     rm -rf $mydir/bin/www
-    cp $mydir/cordova-webos.js $mydir/enyo-app/cordova.js -f
+    cp -f $mydir/cordova-webos.js $mydir/enyo-app/cordova.js
     cd $mydir/enyo-app
     palm-package .
     mv $mydir/enyo-app/*.ipk $mydir/bin/
@@ -58,10 +58,10 @@ fi
 
 if [ $www -eq 1 ]; then
     echo "Building for www..."
-    mkdir $mydir/bin/www -p
+    mkdir -p $mydir/bin/www
     rm -rf $mydir/bin/www/*
-    cp $mydir/cordova-www.js $mydir/enyo-app/cordova.js -f
-    cp $mydir/enyo-app/* $mydir/bin/www -R
+    cp -f $mydir/cordova-www.js $mydir/enyo-app/cordova.js
+    cp -R $mydir/enyo-app/* $mydir/bin/www
 fi
 
 if [ $android -eq 1 ]; then
@@ -69,11 +69,11 @@ if [ $android -eq 1 ]; then
     rm -rf $mydir/bin/*.apk
     dirname=$mydir/cordova-wrapper
     cd $mydir/cordova-wrapper
-    mkdir $mydir/cordova-wrapper/www -p
+    mkdir -p $mydir/cordova-wrapper/www
     rm -rf $mydir/cordova-wrapper/www/*
     cordova platform add android
     echo "Copying to Cordova..."
-    cp $mydir/enyo-app/* $mydir/cordova-wrapper/www -R
+    cp -R $mydir/enyo-app/* $mydir/cordova-wrapper/www
     cd $mydir/cordova-wrapper
     echo "Building Cordova..."
     cordova build android
