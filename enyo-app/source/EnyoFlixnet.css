@@ -1,0 +1,55 @@
+/* Your CSS here */
+.toolbar-title {
+    color: white;
+}
+.enyo-item {
+
+}
+.item-dark {
+    background-color: black;
+}
+.movie-poster {
+    width: 154px;
+    height: 231px;
+}
+.movie-item {
+    border: 0px !important;
+}
+.movie-title {
+    width: 154px;
+    font-size: smaller;
+    font-weight: bold;
+    overflow:hidden;
+    white-space:nowrap; 
+    text-overflow: ellipsis;
+}
+#enyoFlixnet_listMovies_client_client {
+    float:left;
+    border: 0px;
+}
+#enyoFlixnet_scroller3_innerClient {
+    padding: 10px;
+}
+.movie-backdrop-frame {
+    text-align:center;
+    margin: 18px;
+    float:left;
+}
+.movie-detail-title {
+    font-size: larger;
+    font-weight: bold;
+    margin-top: 18px;
+    margin-bottom: 12px;
+}
+.movie-detail-meta {
+    font-size: smaller;
+    font-weight: bold;
+    margin-bottom: 12px;
+}
+#OFFenyoFlixnet_scroller3_innerClient {
+    background: url(images/showtime.png) no-repeat center center fixed;
+    -webkit-background-size: cover; /* For WebKit*/
+    -moz-background-size: cover;    /* Mozilla*/
+    -o-background-size: cover;      /* Opera*/
+    background-size: cover;  
+}

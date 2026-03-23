@@ -1,0 +1,11 @@
+{
+	"id": "org.webosarchive.flixnet",
+	"version": "1.0.0",
+	"vendor": "webOS Archive",
+	"type": "web",
+	"main": "index.html",
+	"title": "Flixnet",
+	"icon": "icon.png",
+	"splashicon": "icon-256.png",
+	"uiRevision":2
+}
