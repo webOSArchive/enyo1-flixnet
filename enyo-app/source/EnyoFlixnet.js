@@ -3,9 +3,13 @@ enyo.kind({
 	kind: enyo.VFlexBox,
 	movieHost: "http://archive.org/download/",
 	detailsOpen: false,
+	offlineMode: false,
+	allMovies: [],
 	components: [
 		{name: "flixnetGenres", kind: "WebService",  url: "http://flixnet.webosarchive.org/api/genres/",  onSuccess: "gotGenres",  onFailure: "failGenres"},
 		{name: "flixnetMovies", kind: "WebService",  url: "http://flixnet.webosarchive.org/api/movies/",  onSuccess: "gotMovies",  onFailure: "failMovies"},
+		{name: "localGenres",   kind: "WebService",  url: "data/genres.json",                             onSuccess: "gotGenres",  onFailure: "noLocalData"},
+		{name: "localMovies",   kind: "WebService",  url: "data/movies.json",                             onSuccess: "gotLocalMovies", onFailure: "noLocalData"},
 		{kind: "PageHeader", className: "enyo-toolbar", components: [
 			{content: "FlixNet", className: "toolbar-title"}
 		]},
@@ -101,7 +105,18 @@ enyo.kind({
 	gotGenres: function(inSender, inResponse) {
 		//enyo.log("Genre response: " + JSON.stringify(inResponse));
 		this.genres = this.genres.concat(inResponse);
+		try { localStorage.setItem("flixnet_genres", JSON.stringify(inResponse)); } catch(e) {}
   		this.$.listGenres.render();
+	},
+	failGenres: function() {
+		this.offlineMode = true;
+		var cached;
+		try { cached = localStorage.getItem("flixnet_genres"); } catch(e) {}
+		if (cached) {
+			this.gotGenres(null, JSON.parse(cached));
+		} else {
+			this.$.localGenres.call();
+		}
 	},
 	renderGenreItem: function(inSender, inIndex) {
 		var r = this.genres[inIndex];
@@ -113,15 +128,56 @@ enyo.kind({
 	},
 	genreSelect: function(inSender, inEvent) {
 		var thisGenre = this.genres[inEvent.rowIndex];
-		var queryUrl = this.$.flixnetMovies.getUrl() + "?genre=" + thisGenre.id;
-		this.$.flixnetMovies.setUrl(queryUrl);
-		this.$.flixnetMovies.call();
+		if (this.offlineMode) {
+			var genreId = thisGenre.id;
+			var filtered = [];
+			var i;
+			for (i = 0; i < this.allMovies.length; i++) {
+				if (this.allMovies[i].genre_id == genreId) {
+					filtered.push(this.allMovies[i]);
+				}
+			}
+			this.movies = filtered.length > 0 ? filtered : this.allMovies;
+			this.$.listMovies.render();
+		} else {
+			var queryUrl = this.$.flixnetMovies.getUrl() + "?genre=" + thisGenre.id;
+			this.$.flixnetMovies.setUrl(queryUrl);
+			this.$.flixnetMovies.call();
+		}
 		this.selectNextView();
 	},
 	gotMovies: function(inSender, inResponse) {
 		//enyo.log("Movies response: " + JSON.stringify(inResponse));
 		this.movies = inResponse;
+		if (this.allMovies.length === 0) {
+			this.allMovies = inResponse;
+			try { localStorage.setItem("flixnet_movies", JSON.stringify(inResponse)); } catch(e) {}
+		}
   		this.$.listMovies.render();
+	},
+	failMovies: function() {
+		this.offlineMode = true;
+		if (this.allMovies.length > 0) {
+			this.movies = this.allMovies;
+			this.$.listMovies.render();
+			return;
+		}
+		var cached;
+		try { cached = localStorage.getItem("flixnet_movies"); } catch(e) {}
+		if (cached) {
+			this.allMovies = JSON.parse(cached);
+			this.movies = this.allMovies;
+			this.$.listMovies.render();
+		} else {
+			this.$.localMovies.call();
+		}
+	},
+	gotLocalMovies: function(inSender, inResponse) {
+		this.allMovies = inResponse;
+		this.gotMovies(inSender, inResponse);
+	},
+	noLocalData: function() {
+		enyo.log("No local fallback data available");
 	},
 	renderMovieItem: function(inSender, inIndex) {
 		var r = this.movies[inIndex];
