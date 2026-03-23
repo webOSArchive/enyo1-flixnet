@@ -30,16 +30,6 @@
 #enyoFlixnet_scroller3_innerClient {
     padding: 10px;
 }
-.current-genre-label {
-    color: white;
-    font-size: smaller;
-    font-weight: bold;
-    text-align: center;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    -webkit-box-flex: 1;
-}
 .movie-backdrop-frame {
     text-align:center;
     margin: 18px;

@@ -17,7 +17,7 @@ enyo.kind({
 		{name: "localGenres",   kind: "WebService",  url: "data/genres.json",                                 onSuccess: "gotGenres",     onFailure: "noLocalData"},
 		{name: "localMovies",   kind: "WebService",  url: "data/movies.json",                                 onSuccess: "gotLocalMovies", onFailure: "noLocalData"},
 		{kind: "PageHeader", className: "enyo-toolbar", components: [
-			{content: "FlixNet", className: "toolbar-title"}
+			{name: "appTitle", content: "FlixNet", className: "toolbar-title"}
 		]},
 		{name: "slidingPane", kind: "SlidingPane", multiViewMinWidth:"500", flex: 1, onSlideComplete: "slidingSelected", components: [
 			{name: "panelGenres", width: "240px", components: [
@@ -46,7 +46,6 @@ enyo.kind({
 				{kind: "Toolbar", components: [
 					{kind: "GrabButton"},
 					{name: "btnPageDown", disabled:true, caption: "Prev", onclick: "prevPage"},
-					{name: "currentGenreLabel", content: "Random", className: "current-genre-label"},
 					{name: "btnPageUp", disabled:true, caption: "Next", onclick: "nextPage"}
 				]}
 			]},
@@ -146,7 +145,7 @@ enyo.kind({
 	genreSelect: function(inSender, inEvent) {
 		var thisGenre = this.genres[inEvent.rowIndex];
 		this.currentSkip = 0;
-		this.$.currentGenreLabel.setContent(capitalizeFirstLetter(thisGenre.genre));
+		this.$.appTitle.setContent("FlixNet: " + capitalizeFirstLetter(thisGenre.genre));
 		if (this.offlineMode) {
 			var genreId = thisGenre.id;
 			var filtered = [];
