@@ -2,13 +2,9 @@
 
 ![Flixnet Icon](enyo-app/icon.png)
 
-Flixnet client for legacy Palm/HP webOS devices, and PWA platforms, depends on back-end service listed below.
+Flixnet client for legacy Palm/HP webOS devices, and PWA platforms, and depends on movies from the Internet Archive and metadata from TMDB.
 
 Tested on Pre3 and Touchpad.
-
-Uses [Flixnet Service](https://github.com/webOSArchive/flixnet-service) which leverages a list of Public Domain movies that have been archived by the Internet Archive, and is hosted by [webOSArchive](http://www.webosarchive.org) for the webOS community without guarantee of privacy or performance. Illegal or illicit use strictly prohibited. 
-
-You can also self-host the services, see the [instructions here](https://github.com/webOSArchive/flixnet-service).
 
 ## What is This?
 

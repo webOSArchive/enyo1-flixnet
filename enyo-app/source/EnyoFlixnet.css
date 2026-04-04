@@ -46,6 +46,20 @@
     font-weight: bold;
     margin-bottom: 12px;
 }
+.movies-loading {
+    color: white;
+    padding: 18px;
+    font-style: italic;
+}
+.toolbar-search-input {
+    margin: 6px 8px;
+    color: black;
+}
+.toolbar-search-btn {
+    width: 26px;
+    height: 26px;
+    display: block;
+}
 #OFFenyoFlixnet_scroller3_innerClient {
     background: url(images/showtime.png) no-repeat center center fixed;
     -webkit-background-size: cover; /* For WebKit*/
